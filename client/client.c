@@ -16,11 +16,11 @@
 static int do_work(struct msdk_message *msdk_msg)
 {
 	int ret;
-	
-	if(!strlen(msdk_msg->cmd))
+
+	if (!strlen(msdk_msg->cmd))
 		return -1;
 	ret = system(msdk_msg->cmd);
-	if(ret < 0)
+	if (ret < 0)
 	{
 		perror("system fork");
 		return -1;
@@ -39,7 +39,7 @@ static char* get_server_addr(const char *name)
 	hptr = gethostbyname(name);
 	if (NULL == hptr)
 		return NULL;
-	for(pptr = hptr->h_addr_list ; *pptr != NULL; pptr++)
+	for (pptr = hptr->h_addr_list; *pptr != NULL; pptr++)
 	{
 		if (NULL != inet_ntop(hptr->h_addrtype, *pptr, ip, 16))
 			return ip;
@@ -75,8 +75,8 @@ int main()
 	char *ip;
 	ssize_t n;
 	struct msdk_message *msdk_msg;
-	
-	log_level_init();	
+
+	log_level_init();
 	msdk_msg = (struct msdk_message *)malloc(sizeof(struct msdk_message));
 	if (!msdk_msg)
 	{
@@ -93,7 +93,7 @@ int main()
 	struct sockaddr_in addr;
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(sock < 0)
+	if (sock < 0)
 	{
 		msdk_log(DEBUG, "ERROR:create socket error\n");
 		free(ip);
@@ -114,7 +114,7 @@ int main()
 
 	msdk_log(DEBUG, "DEBUG: connect success\n");
 	clear_send_msg(msdk_msg);
-	for(;;) {
+	for (;;) {
 		//ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 		fill_send_msg(msdk_msg);
 		n = send(sock, msdk_msg, msg_len, 0);
@@ -129,23 +129,25 @@ int main()
 		{
 			perror("recv");
 			goto out;
-		} else if (n == 0) 
+		}
+		else if (n == 0)
 		{
 			msdk_log(DEBUG, "Server die\n");
 			goto out;
-		} else
+		}
+		else
 		{
 			parse_msg(msdk_msg, &type);
-			switch(type)
+			switch (type)
 			{
-				case MSDK_DATA:
-					ret = do_work(msdk_msg);
-					msdk_log(DEBUG, "%s\n", strerror(ret));
-					break;
-				case MSDK_EXIT:
-					goto out;
-				default:
-					break;
+			case MSDK_DATA:
+				ret = do_work(msdk_msg);
+				msdk_log(DEBUG, "%s\n", strerror(ret));
+				break;
+			case MSDK_EXIT:
+				goto out;
+			default:
+				break;
 			}
 		}
 	}

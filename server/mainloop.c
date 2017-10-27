@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
- 
+
 #include "common.h"
 
 #define TEST_ITEMS 1000
@@ -25,77 +25,77 @@ static int totallen;
 
 static int readline(char *file, char *readerbuf[])
 {
-    int fd, i, j, ishead;
-    ssize_t n, n1;
-    char tmp;
+	int fd, i, j, ishead;
+	ssize_t n, n1;
+	char tmp;
 
-    fd = open(file, O_RDONLY);
-    ishead = 1;
-    i = -1;
+	fd = open(file, O_RDONLY);
+	ishead = 1;
+	i = -1;
 	j = 0;
-    while(1)
-    {
+	while (1)
+	{
 		if ((i + 1) > TEST_ITEMS)
 		{
 			msdk_log(ERROR, "ERROR: Panic, config file too large!!!\n ");
 			close(fd);
 			return -1;
-		} 
-        n = read(fd, &tmp, 1);
+		}
+		n = read(fd, &tmp, 1);
 		if (n < 0)
 			return -1;
-        if (n > 0 && ishead)
-        {
-			while(tmp == ' ' || tmp == '	')
+		if (n > 0 && ishead)
+		{
+			while (tmp == ' ' || tmp == '	')
 			{
 				n1 = read(fd, &tmp, 1);
-				if(n1 == 0)
+				if (n1 == 0)
 				{
 					totallen = i + 1;
 					close(fd);
 					return 0;
 				}
 			}
-            j = 0;
-            ishead = 0;
-            if (tmp != '#' && tmp != '\n')
-            {
-                i++;
-                *(readerbuf[i] + j) = tmp;
-            }
-            else if (tmp == '#')
+			j = 0;
+			ishead = 0;
+			if (tmp != '#' && tmp != '\n')
 			{
-                while(1)
-                {
-                    n1 = read(fd, &tmp, 1);
-                    if(tmp == '\n')
-                    {
-                        ishead = 1;
-                        break;
-                    }
-                }
-            }
+				i++;
+				*(readerbuf[i] + j) = tmp;
+			}
+			else if (tmp == '#')
+			{
+				while (1)
+				{
+					n1 = read(fd, &tmp, 1);
+					if (tmp == '\n')
+					{
+						ishead = 1;
+						break;
+					}
+				}
+			}
 			else if (tmp == '\n')
 				ishead = 1;
-        }
+		}
 		else if (n > 0)
 		{
-            ++j;
-            *(readerbuf[i] + j) = tmp;
-            if (tmp == '\n')
-            {
-                ishead = 1;
-                *(readerbuf[i] + j) = '\0';
-            }
-        }
+			++j;
+			*(readerbuf[i] + j) = tmp;
+			if (tmp == '\n')
+			{
+				ishead = 1;
+				*(readerbuf[i] + j) = '\0';
+			}
+		}
 		else if (n == 0)
 		{
-            //end
+			//end
 			close(fd);
 			totallen = i + 1;
-            break;
-        }
-    }
+			break;
+		}
+	}
 	return 0;
 }
 
@@ -106,7 +106,7 @@ void init_data(void)
 	for (i = 0; i < TEST_ITEMS; ++i)
 	{
 		contents[i] = malloc(MAX_LEN);
-		if(!contents[i])
+		if (!contents[i])
 		{
 			msdk_log(ERROR, "ERROR:Contents malloc!\n");
 			exit(1);
@@ -119,8 +119,9 @@ void init_data(void)
 			msdk_log(ERROR, "ERROR: Read %s failed!\n", CONFIG_PATH);
 			exit(1);
 		}
-		sub = 0; 
-	} else {
+		sub = 0;
+	}
+	else {
 		msdk_log(ERROR, "ERROR: Cannot find config file!\n");
 		exit(1);
 	}
@@ -149,7 +150,7 @@ static int mainloop_read(int fd, struct msdk_message *recvbuf)
 
 	len = sizeof(struct msdk_message);
 	ret = recv(fd, recvbuf, len, 0);
-	
+
 	msdk_log(DEBUG, "DEBUG,type: %d\n", recvbuf->type);
 	return ret;
 }
@@ -172,7 +173,8 @@ static int mainloop_handler(int fd, struct msdk_message *sendbuf)
 		}
 		sub++;
 		ret = send(fd, sendbuf, len, 0);
-	} else {
+	}
+	else {
 		sendbuf->type = MSDK_EXIT;
 		ret = send(fd, sendbuf, len, 0);
 	}
@@ -222,18 +224,18 @@ int mainloop(int efd, int sfd, int timeout_ms)
 	//init clientfds;
 	clientfds = 12345678;
 
-	memset((void *)&cliaddr, 0, sizeof(cliaddr));	
+	memset((void *)&cliaddr, 0, sizeof(cliaddr));
 	for (;;) {
 		nfds = epoll_wait(efd, events, MAX_EVENTS, timeout_ms);
-		if(nfds < 0) {
-			if(errno == EINTR)
+		if (nfds < 0) {
+			if (errno == EINTR)
 				continue;
 			return -1;
 		}
 		for (i = 0; i < nfds; i++) {
-			if(events[i].data.fd == sfd) {
+			if (events[i].data.fd == sfd) {
 				clifd = accept(sfd, (struct sockaddr *)&cliaddr, &clilen);
-				if(clifd < 0) {
+				if (clifd < 0) {
 					msdk_log(ERROR, "accept error!\n");
 					continue;
 				}
@@ -246,10 +248,11 @@ int mainloop(int efd, int sfd, int timeout_ms)
 				ev.data.fd = clifd;
 				if (epoll_ctl(efd, EPOLL_CTL_ADD, clifd, &ev) < 0) {
 					msdk_log(ERROR, "epoll set insertion error: fd=%d\n",
-							clifd);
+						clifd);
 					return -1;
 				}
-			} else if (events[i].events & EPOLLIN){
+			}
+			else if (events[i].events & EPOLLIN) {
 				//read
 				conn = events[i].data.fd;
 				//n = read(cli_sock, recvbuf, sizeof(recvbuf));

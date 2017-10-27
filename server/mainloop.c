@@ -273,7 +273,13 @@ int mainloop(int efd, int sfd, int timeout_ms)
 			}
 		}
 		if (clientfds == 0)
+		{
+			for (i = 0; i < TEST_ITEMS; ++i)
+			{
+				free(contents[i]);
+			}
 			return 0;
+		}
 		msdk_log(DEBUG, "DEBUG: running... \n");
 		//to be continue
 	}
